@@ -1,4 +1,8 @@
-<?php  include("Team.php"); include("TeamResult.php"); include("AccumulatedResults.php");
+<?php
+include("Team.php");
+include("TeamResult.php");
+include("AccumulatedResults.php");
+include("Tools.php");
 
 /**
  * Created by PhpStorm.
@@ -6,7 +10,6 @@
  * Date: 1/11/2016
  * Time: 2:33 PM
  *
- *  TODO - List of project items
  *  1. Read teams from text file -DONE 1/12/16
  *  2. Show UI to enter scores for a week -DONE
  *  3. Grab results data from file -DONE
@@ -16,16 +19,18 @@
  *  6. Allow user to edit results data (and save it back to DB) -DONE
  *  7. Show accumulated point ranking based on scores entered -DONE  2/24/16
  *  8. Allow ability to change week -DONE 2/25/16
- *  9. Clean up HTML with some loops
- *  10. Show All Weeks we have accumulated points for in that section with each weekly value and a summed total
- *  11. Allow user to add a new week.
- *  12. Create log in page
- *  13. Adjust score entry to only display on a separate form with a user log in
- *  14. Understand OO code here - refactor so we're not building "fake" objects
- *    14a. Understand the include command up top - is there is a package I could create for this instead of adding one by one.
- *  15. Clean up the UI to make it look better
- *  16. Handle 3 way ties
- *  17. Read up on session management
+ *  TODO 9.  Clean up HTML with some loops
+ *  TODO 10. Show All Weeks we have accumulated points for in that section with each weekly value and a summed total
+ *  TODO 11. Allow user to add a new week.
+ *  TODO 12. Create log in page
+ *  TODO 13. Adjust score entry to only display on a separate form with a user log in
+ *  TODO 14. Fix getAccumulatedResultsByWeek (see to do noted there).
+ *  TODO 15. Understand OO code here - refactor so we're not building "fake" objects
+ *    TODO 15a. Understand the include command up top - is there is a package I could create for this instead of adding one by one.
+ *  TODO 16. Clean up the UI to make it look better
+ *  TODO 17. Use some javascript to be able to remove the select button for changing weeks (invoke a change event on drop down list change)
+ *  TODO 18. Handle 3 way ties in calculateRank
+ *  TODO 19. Read up on session management
  *
  */
 
@@ -34,6 +39,7 @@
     $accumulatedResults = new AccumulatedResults(1,1,1,1);
     $scoreInfo = array();
     $resultInfo = array();
+    $numberOfTeams = 10; //this should be dynamic in the future instead of hard coded.
     $weeks = array(1,2,3,4); //will make this dynamic / user driven in future
     $selectedWeek;
 
@@ -44,14 +50,14 @@
         $selectedWeek = 1; //default to week 1 if not selected yet
     }
 
-    $scoreInfo = $teamResults->loadResultsFromDB($selectedWeek);
+    $scoreInfo = $teamResults->loadResultsFromDBByWeek($selectedWeek);
     $scoreInfo = sortArrayByIndex($scoreInfo, 'score'); //we used to need this for accumulated points calculation - might not need anymore.
 
     if(isset($_POST['saveButton']))
     {
         //echo "POST saveButton";
         gatherUserResults($scoreInfo, $teamResults, $selectedWeek);
-        $scoreInfo = $teamResults->loadResultsFromDB($selectedWeek);
+        $scoreInfo = $teamResults->loadResultsFromDBByWeek($selectedWeek);
         $scoreInfo = sortArrayByIndex($scoreInfo, 'score');
     }
 
@@ -71,25 +77,11 @@
     }
 
     //$resultInfo = $accumulatedResults->calculateWeeklyRank($scoreInfo, $selectedWeek);
-    $resultInfo = $accumulatedResults->calculateWeeklyRankHandleTwoWayTie($scoreInfo, $selectedWeek);
+    $resultInfo = $accumulatedResults->calculateRank($scoreInfo, $numberOfTeams);
     $resultInfo = $accumulatedResults->calculateAccumulatedResultsByWeek($resultInfo, $selectedWeek);
     $accumulatedResults->loadAccumulatedResultsIntoDBByWeek($resultInfo, $selectedWeek);
 
     $resultInfo = sortArrayByIndex($resultInfo, 'accumulatedPoints');
-
-    //given an array and an index of that array sort by that index and return the array
-    function sortArrayByIndex($inputArray, $indexString)
-    {
-        $sortedArray = array();
-
-        foreach ($inputArray as $array)
-        {
-            $sortedArray[] = (int)$array[$indexString];
-        }
-
-        array_multisort($sortedArray, SORT_DESC, $inputArray);
-        return $inputArray;
-    }
 
     //echo " selected week -" . $selectedWeek;
 
