@@ -19,25 +19,28 @@ class Team
         $this->teamId = $id;
     }
 
-    //reads data from input file and returns it in an array
-    public function LoadTeamsFromFile($fileName)
+    public function LoadTeamInfoFromDB()
     {
-        $txtFileData = file_get_contents($fileName);
-        $rows = explode("\n", $txtFileData);
-        echo "Team file data array";
-        //var_dump($rows);
+        $matchCtr = 0;
+        $teamData = array();
 
-        for ($i=0; $i<count($rows); ++$i)
-        {
-            $name = explode(",", $rows[$i]);
-            //echo "Current Team: ";
-            //var_dump($name);
-            $teamArray[$i][0] = $name[0];
-            $teamArray[$i][1] = $name[1];
-            //var_dump($teamArray);
+        $dbc = mysqli_connect('PC-DEV-229','jim.lenart','moonchild', 'angry_robots', '3306' )
+        or die ('Error connecting to MySQL server.');
+
+        $query = "SELECT * FROM angry_robots.teams ";
+
+        $result = mysqli_query($dbc, $query)
+        or die('Error querying database in LoadTeamInfoFromDB.');
+
+        while ($row = mysqli_fetch_array($result)){
+
+            $teamData[$matchCtr]['teamId'] = $row['team_id'];
+            $teamData[$matchCtr]['teamName'] = $row['team_name'];
+
+            $matchCtr++;
         }
-        var_dump($teamArray);
-        return $teamArray;
+        //var_dump($teamData);
+        return $teamData;
+
     }
 }
-
