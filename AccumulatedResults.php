@@ -39,22 +39,32 @@ class AccumulatedResults extends TeamResult
         return $sortedScoreResults;
     }
 
-    //For a given week, calculate the rank value.
-    public function calculateWeeklyRankHandleTwoWayTie($sortedScoreResults, $week)
+    /*
+     * Assign a rank value with highest value going to highest score starting at $numberOfTeams.
+     * For example: If $numberOfTeams=10 then highest score=10, next highest score=9..etc.
+     * Assumes results are sorted first by week then by score.
+     */
+    public function calculateRank($sortedScoreResults, $numberOfTeams)
     {
-
-        //Loop through results sorted by highest score. Highest score = 10, next 9..etc.
-        $accumulatedCtr = 10;
+        $accumulatedCtr = $numberOfTeams;
         $accumulatedVal = 0;
         $currentScore=0;
         $previousScore=0;
+        $currentWeek=0;
+        $previousWeek=0;
 
         for ($i=0; $i<count($sortedScoreResults); ++$i)
         {
             if(!empty($sortedScoreResults[$i]['score']))
             {
                 $currentScore = $sortedScoreResults[$i]['score'];
-                if ($currentScore == $previousScore)
+                $currentWeek = $sortedScoreResults[$i]['week'];
+                if($currentWeek != $previousWeek)
+                {
+                    $accumulatedCtr = $numberOfTeams; //reset the counter if we advanced to the next week
+                }
+
+                if ($currentScore == $previousScore)  //handle 2 way ties
                 {
                     //split the rank between the tied scores
                     $accumulatedVal = ($accumulatedCtr + $accumulatedCtr+1) / 2;
@@ -65,12 +75,14 @@ class AccumulatedResults extends TeamResult
                 }
                 $accumulatedCtr--;
                 $previousScore = $currentScore;
+                $previousWeek = $currentWeek;
             }
         }
         //var_dump($sortedScoreResults);
         return $sortedScoreResults;
     }
 
+    //this will eventually be replaced by the one below
     public function calculateAccumulatedResultsByWeek($accumulatedResults, $week)
     {
         for ($i=0; $i<count($accumulatedResults); ++$i)
@@ -92,6 +104,30 @@ class AccumulatedResults extends TeamResult
             }
         }
         //var_dump($accumulatedResults);
+        return $accumulatedResults;
+    }
+
+    public function calculateAccumulatedResults($accumulatedResults)
+    {
+        for ($i=0; $i<count($accumulatedResults); ++$i)
+        {
+            if(!empty($accumulatedResults[$i]['score']))
+            {
+                if ($accumulatedResults[$i]['week'] == 1)
+                {
+                    $accumulatedResults[$i]['accumulatedPoints'] = $accumulatedResults[$i]['weeklyRank'];
+
+                } else {
+                    $prevAccumulated = $this->getAccumulatedPointsByWeek($accumulatedResults[$i]['teamId'], $accumulatedResults[$i]['week']-1); //get the sum of all previous accumulated points
+                    $accumulatedResults[$i]['accumulatedPoints'] = $accumulatedResults[$i]['weeklyRank'] + $prevAccumulated;
+                }
+
+            } else {
+
+                $accumulatedResults[$i]['accumulatedPoints'] = "";
+            }
+        }
+        var_dump($accumulatedResults);
         return $accumulatedResults;
     }
 
@@ -121,6 +157,7 @@ class AccumulatedResults extends TeamResult
         }
     }
 
+    //to do - this is not efficient. We should pull back all team results for that week instead of one at a time.
     public function getAccumulatedPointsByWeek($teamId, $week)
     {
         $dbc = mysqli_connect('PC-DEV-229','jim.lenart','moonchild', 'angry_robots', '3306' )

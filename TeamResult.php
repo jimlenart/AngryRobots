@@ -19,9 +19,8 @@ class TeamResult extends Team
         $this->score = $score;
     }
 
-    public function loadResultsFromDB($week)
+    public function loadResultsFromDBByWeek($week)
     {
-
         $matchCtr = 0;
         $scoreResults = array();
 
@@ -32,8 +31,6 @@ class TeamResult extends Team
             " FROM teams t LEFT JOIN team_results r " .
             " ON r.week='$week'" .
             " AND r.team_id = t.team_id";
-
-        //var_dump($query);
 
         $result = mysqli_query($dbc, $query)
             or die('Error querying database in loadResultsFromDB.');
@@ -47,11 +44,38 @@ class TeamResult extends Team
 
             $matchCtr++;
         }
+        return $scoreResults;
+    }
+
+    public function loadResultsFromDB()
+    {
+        $matchCtr = 0;
+        $scoreResults = array();
+
+        $dbc = mysqli_connect('PC-DEV-229','jim.lenart','moonchild', 'angry_robots', '3306' )
+        or die ('Error connecting to MySQL server.');
+
+        $query = "SELECT t.team_id, r.score, t.team_name, r.week " .
+            " FROM teams t LEFT JOIN team_results r " .
+            " ON r.team_id = t.team_id " .
+            " ORDER BY r.week, r.score DESC";
+
+        $result = mysqli_query($dbc, $query)
+        or die('Error querying database in loadResultsFromDB.');
+
+        while ($row = mysqli_fetch_array($result)){
+
+            $scoreResults[$matchCtr]['teamId'] = $row['team_id'];
+            $scoreResults[$matchCtr]['score'] = $row['score'];
+            $scoreResults[$matchCtr]['teamName'] = $row['team_name'];
+            $scoreResults[$matchCtr]['week'] = $row['week'];;
+
+            $matchCtr++;
+        }
 
         //echo "loadResultsFromDB - teamResultsExpanded: " . "<br>";
         //var_dump($teamResultsExpanded);
         return $scoreResults;
-
     }
 
     public function loadResultsIntoDBByWeek($scoreResults, $week)
