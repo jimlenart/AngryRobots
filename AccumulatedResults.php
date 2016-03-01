@@ -19,26 +19,6 @@ class AccumulatedResults extends TeamResult
         $this->weeklyRank = $weeklyRank;
     }
 
-    //For a given week, calculate the rank value.
-    public function calculateWeeklyRank($sortedScoreResults, $week)
-    {
-
-
-        echo $week;
-
-        //Loop through results sorted by highest score. Highest score = 10, next 9..etc.
-        $accumulatedCtr = 10;
-        for ($i=0; $i<count($sortedScoreResults); ++$i)
-        {
-            $sortedScoreResults[$i]['weeklyRank'] = $accumulatedCtr;
-            $accumulatedCtr--;
-        }
-
-        var_dump($sortedScoreResults);
-
-        return $sortedScoreResults;
-    }
-
     /*
      * Assign a rank value with highest value going to highest score starting at $numberOfTeams.
      * For example: If $numberOfTeams=10 then highest score=10, next highest score=9..etc.
@@ -82,31 +62,6 @@ class AccumulatedResults extends TeamResult
         return $sortedScoreResults;
     }
 
-    //this will eventually be replaced by the one below
-    public function calculateAccumulatedResultsByWeek($accumulatedResults, $week)
-    {
-        for ($i=0; $i<count($accumulatedResults); ++$i)
-        {
-            if(!empty($accumulatedResults[$i]['score']))
-            {
-                if ($week == 1)
-                {
-                    $accumulatedResults[$i]['accumulatedPoints'] = $accumulatedResults[$i]['weeklyRank'];
-
-                } else {
-                    $prevAccumulated = $this->getAccumulatedPointsByWeek($accumulatedResults[$i]['teamId'], $week-1); //get the sum of all previous accumulated points
-                    $accumulatedResults[$i]['accumulatedPoints'] = $accumulatedResults[$i]['weeklyRank'] + $prevAccumulated;
-                }
-
-            } else {
-
-                $accumulatedResults[$i]['accumulatedPoints'] = "";
-            }
-        }
-        //var_dump($accumulatedResults);
-        return $accumulatedResults;
-    }
-
     public function calculateAccumulatedResults($accumulatedResults)
     {
         for ($i=0; $i<count($accumulatedResults); ++$i)
@@ -121,24 +76,21 @@ class AccumulatedResults extends TeamResult
                     $prevAccumulated = $this->getAccumulatedPointsByWeek($accumulatedResults[$i]['teamId'], $accumulatedResults[$i]['week']-1); //get the sum of all previous accumulated points
                     $accumulatedResults[$i]['accumulatedPoints'] = $accumulatedResults[$i]['weeklyRank'] + $prevAccumulated;
                 }
-
             } else {
-
                 $accumulatedResults[$i]['accumulatedPoints'] = "";
             }
         }
-        var_dump($accumulatedResults);
+        //var_dump($accumulatedResults);
         return $accumulatedResults;
     }
 
-
-    public function loadAccumulatedResultsIntoDBByWeek($accumulatedResults, $week)
+    public function loadAccumulatedResultsIntoDB($accumulatedResults)
     {
         $dbc = mysqli_connect('PC-DEV-229','jim.lenart','moonchild', 'angry_robots', '3306' )
         or die ('Error connecting to MySQL server.');
 
-        $query = "DELETE FROM accumulated_rankings WHERE week = $week";
-        mysqli_query($dbc, $query) or die('Error deleting data in angry_robots.accumulated_rankings table in loadAccumulatedResultsIntoDBByWeek.');
+        $query = "DELETE FROM accumulated_rankings";
+        mysqli_query($dbc, $query) or die('Error deleting data in angry_robots.accumulated_rankings table in loadAccumulatedResultsIntoDB.');
 
         for ($i=0; $i<count($accumulatedResults); ++$i)
         {
@@ -147,12 +99,12 @@ class AccumulatedResults extends TeamResult
                 $teamId = $accumulatedResults[$i]['teamId'];
                 $weeklyRank = $accumulatedResults[$i]['weeklyRank'];
                 $accumulatedPoints = $accumulatedResults[$i]['accumulatedPoints'];
-
+                $week = $accumulatedResults[$i]['week'];
 
                 $query = "INSERT INTO accumulated_rankings (week, team_id, rank, accumulated_points)" .
                     "VALUES ($week,$teamId,$weeklyRank, $accumulatedPoints)";
 
-                mysqli_query($dbc, $query) or die('Error inserting data into angry_robots.accumulated_rankings table in loadAccumulatedResultsIntoDBByWeek.');
+                mysqli_query($dbc, $query) or die('Error inserting data into angry_robots.accumulated_rankings table in loadAccumulatedResultsIntoDB.');
             }
         }
     }
