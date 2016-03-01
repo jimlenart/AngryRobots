@@ -47,7 +47,7 @@ class TeamResult extends Team
         return $scoreResults;
     }
 
-    public function loadResultsFromDB()
+    public function GetTeamResultsFromDB()
     {
         $matchCtr = 0;
         $scoreResults = array();
@@ -68,12 +68,11 @@ class TeamResult extends Team
             $scoreResults[$matchCtr]['teamId'] = $row['team_id'];
             $scoreResults[$matchCtr]['score'] = $row['score'];
             $scoreResults[$matchCtr]['teamName'] = $row['team_name'];
-            $scoreResults[$matchCtr]['week'] = $row['week'];;
+            $scoreResults[$matchCtr]['week'] = $row['week'];
 
             $matchCtr++;
         }
 
-        //echo "loadResultsFromDB - teamResultsExpanded: " . "<br>";
         //var_dump($teamResultsExpanded);
         return $scoreResults;
     }
