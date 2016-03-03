@@ -8,26 +8,48 @@
  */
 class TeamResult extends Team
 {
-    public $year;
-    public $week;
-    public $score;
-    public $rank;
-
-
-    public function __construct($year, $teamId, $week, $score)
+    public function displayTeamResultsModule($year)
     {
-        $this->year = $year;
-        $this->teamId = $teamId;
-        $this->week = $week;
-        $this->score = $score;
+        $teamResultData = $this->getTeamResultsFromDB($year);
+        $sortedTeamTotals = $this->getSortedTeamTotals($year);
+        $this->buildTeamResultsModule($teamResultData, $sortedTeamTotals);
+    }
+
+    public function getSortedTeamTotals($year)
+    {
+        $matchCtr = 0;
+        $teamTotals = array();
+
+        $dbc = mysqli_connect('PC-DEV-229','jim.lenart','moonchild', 'angry_robots', '3306' )
+        or die ('Error connecting to MySQL server.');
+
+        $query = "SELECT ROUND(SUM(r.score),1) as score, r.team_id, t.team_name " .
+            " FROM team_results r LEFT JOIN teams t" .
+            " ON r.team_id = t.team_id" .
+            " WHERE r.year = '$year'" .
+            " GROUP BY r.team_id" .
+            " ORDER BY score DESC";
+
+        $result = mysqli_query($dbc, $query)
+        or die('Error querying database in loadResultsFromDB.');
+
+        while ($row = mysqli_fetch_array($result)){
+
+            $teamTotals[$matchCtr]['teamId'] = $row['team_id'];
+            $teamTotals[$matchCtr]['score'] = $row['score'];
+            $teamTotals[$matchCtr]['teamName'] = $row['team_name'];
+            $teamTotals[$matchCtr]['year'] = $year;
+
+            $matchCtr++;
+        }
+        mysqli_close($dbc);
+        return $teamTotals;
     }
 
     public function calculateRank($sortedScoreResults, $numberOfTeams)
     {
         $accumulatedCtr = $numberOfTeams;
-        //$currentScore=0;
         $previousScore=0;
-        //$currentWeek=0;
         $previousWeek=0;
 
         for ($i=0; $i<count($sortedScoreResults); ++$i)
@@ -58,7 +80,19 @@ class TeamResult extends Team
         return $sortedScoreResults;
     }
 
-    public function getResultsFromDBByWeek($year, $week)
+    public function getAccumulatedScoreByTeam($teamResultData, $teamId)
+    {
+        $accumulatedTeamScore = 0;
+        for ($i=0; $i<count($teamResultData); ++$i) {
+            if($teamResultData[$i]['teamId'] == $teamId)
+            {
+                $accumulatedTeamScore = $accumulatedTeamScore + $teamResultData[$i]['score'];
+            }
+        }
+        return $accumulatedTeamScore;
+    }
+
+    public function getTeamResultsFromDBByWeek($year, $week)
     {
         $matchCtr = 0;
         $scoreResults = array();
@@ -146,7 +180,69 @@ class TeamResult extends Team
             mysqli_query($dbc, $query) or die('Error inserting data into angry_robots.team_results table in loadTeamResultsIntoDB.');
         }
         mysqli_close($dbc);
+    }
 
+    public function buildTeamResultsModule($teamResultData, $sortedTeamTotals)
+    {
+        ?>
+
+        <html>
+        <head>
+            <link rel="stylesheet" type="text/css" href="AccumulatedPoints.css">
+            <title>Results Input Form</title>
+        </head>
+        <body>
+
+        <div class="header">
+            <h1>Team Scores</h1>
+        </div>
+
+        <table>
+            <!-- If we find a new week add it to the column header-->
+            <thead>
+            <tr>
+                <th>Teams</th>
+                <?php
+                    $currentWeek = 0;
+                    for ($i=0; $i<count($teamResultData); ++$i)
+                    {
+                        if($currentWeek != $teamResultData[$i]['week'])
+                        {
+                            echo '<th>Week ' . $teamResultData[$i]['week'] . '</th>';
+                        }
+                        $currentWeek = $teamResultData[$i]['week'];
+                    }
+                ?>
+                <th>Total</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <?php
+                for ($i=0; $i<count($sortedTeamTotals); ++$i)
+                {
+                    echo '<tr>';
+                    echo '<td>' . $sortedTeamTotals[$i]['teamName'] . '</td>';
+                    for ($j=0; $j<count($teamResultData); ++$j)
+                    {
+                        if($sortedTeamTotals[$i]['teamId'] == $teamResultData[$j]['teamId'])
+                        {
+                            echo '<td>' . $teamResultData[$j]['score'] . '</td>';
+                        }
+                    }
+
+                    echo '<td>' . $sortedTeamTotals[$i]['score']  . '</td>';
+                    echo '</tr>';
+                }
+            ?>
+
+            </tbody>
+        </table>
+
+        </body>
+        </html>
+
+        <?php
     }
 
 }

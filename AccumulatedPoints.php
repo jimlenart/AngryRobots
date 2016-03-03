@@ -16,25 +16,14 @@
 
 class AccumulatedPoints
 {
-    public $year;
-    public $teamId;
-    public $accumulatedPoints;
-
-    public function __construct($year, $teamId, $accumulatedPoints)
-    {
-        $this->year = $year;
-        $this->teamId = $teamId;
-        $this->accumulatedPoints = $accumulatedPoints;
-    }
-
     public function displayAccumulatedPoints($year)
     {
-        $teamResults = new TeamResult(0,0,0,0);
+        $teamResults = new TeamResult();
 
         $teamResultData = $teamResults->getTeamResultsFromDB($year);
         $accumulatedPointsData = $this->getAccumulatedPoints($year);
 
-        buildAccumulatedPoints($teamResultData, $accumulatedPointsData);
+        $this->buildAccumulatedPointsModule($teamResultData, $accumulatedPointsData);
     }
 
     public function getAccumulatedPoints($year)
@@ -129,6 +118,70 @@ class AccumulatedPoints
         }
         mysqli_close($dbc);
     }
+
+    function buildAccumulatedPointsModule($teamResultData, $accumulatedResultsData)
+    {
+        ?>
+
+        <html>
+        <head>
+            <link rel="stylesheet" type="text/css" href="AccumulatedPoints.css">
+            <title>Results Input Form</title>
+        </head>
+        <body>
+
+        <div class="header">
+            <h1>Accumulated Points</h1>
+        </div>
+
+        <table>
+            <!-- If we find a new week add it to the column header-->
+            <thead>
+            <tr>
+                <th>Teams</th>
+                <?php
+                $currentWeek = 0;
+                for ($i=0; $i<count($teamResultData); ++$i)
+                {
+                    if($currentWeek != $teamResultData[$i]['week'])
+                    {
+                        echo '<th>Week ' . $teamResultData[$i]['week'] . '</th>';
+                    }
+                    $currentWeek = $teamResultData[$i]['week'];
+                }
+                ?>
+                <th>Total</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <?php
+            for ($i=0; $i<count($accumulatedResultsData); ++$i)
+            {
+                echo '<tr>';
+                echo '<td>' . $accumulatedResultsData[$i]['teamName'] . '</td>';
+                for ($j=0; $j<count($teamResultData); ++$j)
+                {
+                    if($accumulatedResultsData[$i]['teamId'] == $teamResultData[$j]['teamId'])
+                    {
+                        echo '<td>' . $teamResultData[$j]['rank'] . '</td>';
+                    }
+                }
+                echo '<td>' . $accumulatedResultsData[$i]['accumulatedPoints'] . '</td>';
+                echo '</tr>';
+            }
+            ?>
+
+            </tbody>
+        </table>
+
+        </body>
+        </html>
+
+
+        <?php
+    }
+
 }
 
 ?>
