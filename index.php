@@ -1,7 +1,6 @@
 <?php
 include("Team.php");
 include("TeamResult.php");
-include("AccumulatedResults.php");
 include("Tools.php");
 include("AccumulatedPoints.php");
 
@@ -22,10 +21,10 @@ include("AccumulatedPoints.php");
  *  8. Allow ability to change week -DONE 2/25/16
  *  9.  Clean up HTML with some loops -DONE 2/29/16
  *  10. Show All Weeks we have accumulated points for in that section with each weekly value and a summed total -DONE 2/29/16
- *  TODO 11. Allow user to add a new week.
- *  TODO 12. Create log in page (Might not need this...)
- *  TODO 13. Adjust score entry to only display on a separate form with a user log in
- *  TODO 14. Fix getAccumulatedResultsByWeek (see to do noted there).
+ *  TODO 11. Clean up ScoreEntry so it is more OO.
+ *  TODO 12. Allow user to add a new week.
+ *  13. Adjust score entry to only display on a separate form -Done 2/29/19
+ *  14. Fix getAccumulatedResultsByWeek (see to do noted there). -DONE 2/29/16
  *  TODO 15. Understand OO code here - refactor so we're not building "fake" objects
  *    TODO 15a. Understand the include command up top - is there is a package I could create for this instead of adding one by one.
  *  TODO 16. Clean up the UI to make it look better
@@ -34,6 +33,6 @@ include("AccumulatedPoints.php");
  *  TODO 19. Read up on session management
  *
  */
-    $accumulated = new AccumulatedPoints();
-
+    $accumulated = new AccumulatedPoints(1,1,1);
+    $accumulated->displayAccumulatedPoints(2015);
 ?>
