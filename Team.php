@@ -40,6 +40,7 @@ class Team
             $matchCtr++;
         }
         //var_dump($teamData);
+        mysqli_close($dbc);
         return $teamData;
     }
 
@@ -69,6 +70,7 @@ class Team
             $matchCtr++;
         }
         //var_dump($teamData);
+        mysqli_close($dbc);
         return $teamData;
 
     }
