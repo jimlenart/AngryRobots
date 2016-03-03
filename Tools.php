@@ -20,7 +20,7 @@ function sortArrayByIndex($inputArray, $indexString)
     return $inputArray;
 }
 
-function buildAccumulatedPoints($resultInfo, $teams)
+function buildAccumulatedPoints($teamResultData, $accumulatedResultsData)
 {
     ?>
 
@@ -41,15 +41,15 @@ function buildAccumulatedPoints($resultInfo, $teams)
         <tr>
             <th>Teams</th>
             <?php
-            $currentWeek = 0;
-            for ($i=0; $i<count($resultInfo); ++$i)
-            {
-                if($currentWeek != $resultInfo[$i]['week'])
+                $currentWeek = 0;
+                for ($i=0; $i<count($teamResultData); ++$i)
                 {
-                    echo '<th>Week ' . $resultInfo[$i]['week'] . '</th>';
+                    if($currentWeek != $teamResultData[$i]['week'])
+                    {
+                        echo '<th>Week ' . $teamResultData[$i]['week'] . '</th>';
+                    }
+                    $currentWeek = $teamResultData[$i]['week'];
                 }
-                $currentWeek = $resultInfo[$i]['week'];
-            }
             ?>
             <th>Total</th>
         </tr>
@@ -57,22 +57,20 @@ function buildAccumulatedPoints($resultInfo, $teams)
 
         <tbody>
         <?php
-        $lastAccumulatedPoints = 0;
-        for ($i=0; $i<count($teams); ++$i)
-        {
-            echo '<tr>';
-            echo '<td>' . $teams[$i]['teamName'] . '</td>';
-            for ($j=0; $j<count($resultInfo); ++$j)
+            for ($i=0; $i<count($accumulatedResultsData); ++$i)
             {
-                if($teams[$i]['teamId'] == $resultInfo[$j]['teamId'])
+                echo '<tr>';
+                echo '<td>' . $accumulatedResultsData[$i]['teamName'] . '</td>';
+                for ($j=0; $j<count($teamResultData); ++$j)
                 {
-                    echo '<td>' . $resultInfo[$j]['weeklyRank'] . '</td>';
-                    $lastAccumulatedPoints = $resultInfo[$j]['accumulatedPoints'];
+                    if($accumulatedResultsData[$i]['teamId'] == $teamResultData[$j]['teamId'])
+                    {
+                        echo '<td>' . $teamResultData[$j]['rank'] . '</td>';
+                    }
                 }
+                echo '<td>' . $accumulatedResultsData[$i]['accumulatedPoints'] . '</td>';
+                echo '</tr>';
             }
-            echo '<td>' . $lastAccumulatedPoints . '</td>';
-            echo '</tr>';
-        }
         ?>
 
         </tbody>
