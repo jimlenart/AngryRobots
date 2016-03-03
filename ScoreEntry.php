@@ -3,14 +3,16 @@
     include("TeamResult.php");
     include("Tools.php");
     include("AccumulatedPoints.php");
+    include("Seasons.php");
 
     $team = new Team();
     $teamResults = new TeamResult();
-    $teamResultData = array();
-    $weeks = array(1,2,3,4); //will make this dynamic / user driven in future
-    $selectedYear = 2015;  //needs to be dynamic in the future
+    $season = new Seasons();
     $accumulatedPoints = new AccumulatedPoints();
 
+    $teamResultData = array();
+    $selectedYear = $season->getCurrentSeason(); //default to current season
+    $weeks = $season->getWeeksArrayByYear($selectedYear);
 
     if(isset($_POST['WeekDropdown']) )
     {
