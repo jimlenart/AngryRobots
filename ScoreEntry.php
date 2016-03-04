@@ -9,10 +9,8 @@
     $teamResults = new TeamResult();
     $season = new Seasons();
     $accumulatedPoints = new AccumulatedPoints();
-
     $teamResultData = array();
     $selectedYear = $season->getCurrentSeason(); //default to current season
-    $weeks = $season->getWeeksArrayByYear($selectedYear);
 
     if(isset($_POST['WeekDropdown']) )
     {
@@ -26,7 +24,6 @@
 
     if(isset($_POST['saveButton']))
     {
-        //Should this be better organized?
         $teamResultData = gatherUserResults($teamResultData);
         $sortedTeamResultData = sortArrayByIndex($teamResultData, 'score');
         $numberOfTeams = $team->getNumberOfTeams();
@@ -38,7 +35,7 @@
     }
 
     //UI Components
-    buildScoreEntryModule($selectedWeek, $teamResultData, $weeks);
+    displayScoreEntryForm($selectedYear, $selectedWeek);
     $accumulatedPoints->displayAccumulatedPoints($selectedYear);
     $teamResults->displayTeamResultsModule($selectedYear);
 
@@ -54,21 +51,17 @@
         return $teamResultData;
     }
 
-    function buildScoreEntryModule($selectedWeek, $teamResultData, $weeks)
+    function displayWeekPickerModule($selectedYear, $selectedWeek)
+    {
+        $season = new Seasons();
+        $weeks = $season->getWeeksArrayByYear($selectedYear);
+        buildWeekPickerModule($selectedWeek, $weeks);
+    }
+
+    function buildWeekPickerModule($selectedWeek, $weeks)
     {
         ?>
-
-        <!-- TODO - build this out into a separate function that can be called from anywhere similar to accumulated points -->
-
-        <html>
-        <head>
-            <link rel="stylesheet" type="text/css" href="AngryRobotsStyleSheet.css">
-            <title>Results Input Form</title>
-        </head>
-        <body>
-
-
-        <form NAME ="resultInput" ACTION= "<?php $_SERVER['PHP_SELF'] ?>" METHOD="POST">
+        <label class="field" >
             <select name="WeekDropdown">
 
                 <?php
@@ -85,24 +78,63 @@
 
             </select>
             <input type="submit" name="WeekSelect" value="Change Week">
+        </label>
+        <?php
+    }
 
-            <fieldset>
-                <legend>Enter Scores For Week <?php echo $selectedWeek?> </legend>
+    function displayScoreEntryModule($selectedYear, $selectedWeek)
+    {
+        $teamResults = new TeamResult();
+        $teamResultData = $teamResults->getTeamResultsFromDBByWeek($selectedYear, $selectedWeek);
+        $teamResultData = sortArrayByIndex($teamResultData, 'score');
+        buildScoreEntryModule($teamResultData);
+    }
 
-                <?php
+    function buildScoreEntryModule($teamResultData)
+    {
+        ?>
+        <label class="field">  </label>
+        <?php
                 for ($i=0; $i<count($teamResultData); ++$i)
                 {
                     echo '<label class="field" >' . $teamResultData[$i]['teamName'] . '</label>';
                     echo '<label><INPUT TYPE = "TEXT" VALUE = "' . $teamResultData[$i]['score'] . '" name="teamIndex' .$i. '" size="5"> </label><br>';
                 }
-                ?>
-
-                <INPUT TYPE = "submit" Name = "saveButton" VALUE = "save">
-            </fieldset>
-
-        </form>
-        </body>
-        </html>
+            ?>
         <?php
     }
+
+    function displayScoreEntryForm($selectedYear, $selectedWeek)
+    {
+        ?>
+            <html>
+            <head>
+                <link rel="stylesheet" type="text/css" href="AngryRobotsStyleSheet.css">
+                <title>Results Input Form</title>
+            </head>
+            <body>
+                <form Name = "ScoreEntry"  ACTION= "<?php $_SERVER['PHP_SELF'] ?>" METHOD="POST">
+
+                    <?php
+                        $season = new Seasons();
+                        $season->displayYearPickerModule($selectedYear);
+                        displayWeekPickerModule($selectedYear, $selectedWeek);
+                    ?>
+                    <br>
+                    <fieldset>
+                        <legend>Enter Scores For Week <?php echo $selectedWeek?> </legend>
+
+                        <?php
+                            displayScoreEntryModule($selectedYear, $selectedWeek);
+                        ?>
+                        <INPUT TYPE = "submit" Name = "saveButton" VALUE = "save">
+
+                    </fieldset>
+
+                </form>
+            </body>
+            </html>
+        <?php
+    }
+
 ?>
