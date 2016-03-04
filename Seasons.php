@@ -84,4 +84,85 @@ class Seasons
         //var_dump($weekArray);
         return $weekArray;
     }
+
+    public function getYearsArray()
+    {
+        $seasonData = $this->getSeasonsFromDB();
+        $yearsArray = array();
+
+        for ($i=0; $i<count($seasonData); ++$i)
+        {
+            $yearsArray[] = $seasonData[$i]['year'];
+        }
+        return $yearsArray;
+    }
+
+    public function displayYearPickerForm($selectedYear)
+    {
+        $years = $this->getYearsArray();
+        $this->buildYearPickerForm($years, $selectedYear);
+    }
+
+    public function displayYearPickerModule($selectedYear)
+    {
+        $years = $this->getYearsArray();
+        $this->buildYearPickerModule($years, $selectedYear);
+    }
+
+    public function buildYearPickerForm($years, $selectedYear)
+    {
+        ?>
+
+        <html>
+        <head>
+            <link rel="stylesheet" type="text/css" href="AngryRobotsStyleSheet.css">
+            <title>Seasons Year Picker Form</title>
+        </head>
+        <body>
+
+        <form NAME ="yearDropdownForm" ACTION= "<?php $_SERVER['PHP_SELF'] ?>" METHOD="POST">
+            <select name="YearDropdown">
+
+                <?php
+                    foreach($years as $item){
+                        echo '<option value="'.$item.'"';
+                        if($item==$selectedYear)
+                        {
+                            echo ' selected';
+                        }
+                        echo '>'. $item . '</option>'."\n";
+                    }
+                ?>
+
+            </select>
+            <input type="submit" name="YearSelect" value="Change Year">
+
+        </form>
+        </body>
+        </html>
+        <?php
+    }
+
+    public function buildYearPickerModule($years, $selectedYear)
+    {
+        ?>
+        <label class="field" >
+            <select name="YearDropdown">
+
+                <?php
+                    foreach($years as $item){
+                        echo '<option value="'.$item.'"';
+                        if($item==$selectedYear)
+                        {
+                            echo ' selected';
+                        }
+                        echo '>'. $item . '</option>'."\n";
+                    }
+                ?>
+            </select>
+            <input type="submit" name="YearSelect" value="Change Year">
+        </label>
+
+        <?php
+    }
 }
